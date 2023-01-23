@@ -1,15 +1,6 @@
-const { Sequelize, DataTypes } = require("sequelize");
-const sequelize = require('./db.js')
-/*const sequelize = new Sequelize('sequelize', 'root', '', {
-    host: 'localhost',
-    dialect: 'mysql'
-  })
-  
-  sequelize.authenticate().then(() => {
-      console.log('Connection has been established successfully.');
-  }).catch((error) => {
-      console.error('Unable to connect to the database: ', error);
-  });*/
+const { DataTypes } = require("sequelize");
+
+const sequelize = require('../db')
  
 const Book = sequelize.define("books", {
     title: {

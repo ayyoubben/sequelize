@@ -1,18 +1,102 @@
-const { Sequelize, DataTypes, Op } = require("sequelize");
-const Book = require('./book.model')
+const { Sequelize, Op } = require("sequelize");
+const Book = require('../models/book')
+var Router = require("express");
+const router = Router();
+const {converter} = require("../utils/converter")
 
-const sequelize = new Sequelize('sequelize', 'root', '', {
-    host: 'localhost',
-    dialect: 'mysql'
-  })
+router.get("/", async (req, res) => {
+  try {
+    const size = Number(req.query.size) || null
+    const page = Number(req.query.page) || null
+    const orders = JSON.parse(req.query.sorts) || []
+    const filts1 = JSON.parse(req.query.filters) || []
+    const filters = converter(filts1.filters)
+
+    const result = await Book.findAndCountAll({
+        //limit = size
+        //offset = page * size ---->from page 0
+        limit: size,
+        offset: page*size,
+        order: orders.sorts,
+        where: filters
+    });
+    res.status(200).send(result);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ status: 500, message: "Internal Server Error" });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+    try {
+      const result = await Book.findByPk(req.params.id);
+      res.status(200).send(result);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ status: 500, message: "Internal Server Error" });
+    }
+});
+
+router.post("/", async (req, res) => {
+      try {
+        const result = await Book.create({
+            title: req.body.title,
+            author: req.body.author,
+            release_date: req.body.release_date,
+            subject: req.body.subject
+        }).then((response) => {
+            res.send(201, "Book created");
+        }).catch(e => {
+            res.send(400, e);
+        })
+      } catch (error) {
+        res.status(500).json({ status: 500, message: "Internal Server Error" });
+      }
+    }
+  );
+
+  router.put("/:id", async (req, res) => {
+      try {
+        const result = await Book.update(
+            { 
+                title: req.body.title,
+                author: req.body.author,
+                release_date: req.body.release_date,
+                subject: req.body.subject
+            }, {
+                where: {
+                    id: req.params.id
+                }
+            }
+        ).then((response) => {
+            res.send(200, "Book updated");
+        }).catch(e => {
+            res.send(400, e);
+        })
+      } catch (error) {
+        res.status(500).json({ status: 500, message: "Internal Server Error" });
+      }
+    }
+  );
   
-  sequelize.authenticate().then(() => {
-      console.log('Connection has been established successfully.');
-  }).catch((error) => {
-      console.error('Unable to connect to the database: ', error);
-  });
 
-
+router.delete("/:id", async (req, res) => {
+    try {
+      const result = await Book.destroy({
+        where: {
+          id: req.params.id
+        }
+      }).then((response) => {
+        res.send(200, "Book deleted");
+      }).catch(e => {
+        res.send(400, e);
+      })
+    } catch (error) {
+      res.status(500).json({ status: 500, message: "Internal Server Error" });
+    }
+});
+  
+module.exports = router;
 /*const books = [
 {
   "title": "Entroflex",
@@ -85,7 +169,9 @@ sequelize.sync().then(() => {
  
  }).catch((error) => {
     console.error('Unable to create table : ', error);
- });
+ });*/
+
+ /*
 sequelize.sync().then(() => {
    console.log('Book table created successfully!');
 
@@ -116,6 +202,7 @@ sequelize.sync().then(() => {
     console.error('Unable to create table : ', error);
 });
 */
+/*
 const oreders = [
     ['createdAt', 'DESC'],
     ['author', 'ASC']
@@ -134,9 +221,9 @@ sequelize.sync().then(() => {
     Book.findAll({
         //limit = size
         //offset = page * size ---->from page 0
-        /*limit: 2,
+        limit: 2,
         offset: 3*2,
-        order: oreders,*/
+        order: oreders,
         where: filters
     }).then(res => {
         const res1 = []
@@ -150,7 +237,7 @@ sequelize.sync().then(() => {
 }).catch((error) => {
     console.error('Unable to create table : ', error);
 });
-
+*/
 /*sequelize.sync().then(() => {
 
     Book.destroy({
